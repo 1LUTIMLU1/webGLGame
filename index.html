@@ -1,0 +1,30 @@
+
+<html>
+    <head>
+        <!--prevents javascript caching-->
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
+        <!--boilerplate stuff-->
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Blob game</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="">
+    </head>
+    <body onload="gL_draw()">
+
+    <div id="webGL-error">
+    </div>
+
+    <canvas id="GLCanvas" width = "960" height = "720">
+    If you can see this message, your browser does not support
+    html5 canvas
+    </canvas>
+       
+        
+        <script src="./scripts/gameEngine.js" defer></script>
+        <script src="./scripts/shaders.js" defer></script>
+    </body>
+</html>
