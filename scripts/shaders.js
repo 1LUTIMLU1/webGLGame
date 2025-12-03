@@ -8,12 +8,13 @@ var shaderVertexPositionAttribute = null;
 var uBlobsLoc = null;
 var uColorLoc = null;
 var uBgColorLoc = null;
+var uTimeLoc = null;
 
 //modern way of writing vertex shader
 //code based on this solution: https://github.com/lucia-gomez/lava-lamp
 
 function getVertexShader() {
-  const vertexSource = /*glsl*/`
+  const vertexSource = /*glsl*/ `
 
 attribute vec2 position;
 
@@ -27,17 +28,24 @@ gl_Position = vec4(position, 0.0, 1.0);
 }
 
 function getFragmentShader() {
-  const fragmentSource = /*glsl*/`
+  const fragmentSource = /*glsl*/ `
     precision highp float;
     
     const float WIDTH = ${window.innerWidth >> 0}.0;
     const float HEIGHT = ${window.innerHeight >> 0}.0;
-
     
+    //keep track of time inside the fragment shader
+    uniform float uTime;
 
     uniform vec3 blobs[${blobs.length}];
     uniform vec3 blobColor;
     uniform vec3 backgroundColor;
+
+    //generate noise
+    //solution copied from https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
+    float rand(vec2 co) {
+        return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+    }
 
     void main() {
       float x = gl_FragCoord.x;
@@ -46,9 +54,24 @@ function getFragmentShader() {
       float sum = 0.0;
       for (int i = 0; i < ${blobs.length}; i++) {
           vec3 blob = blobs[i];
-          float dx = blob.x - x;
-          float dy = blob.y - y;
+          //need to caclulate the signed distance originating from
+          //blob's center to a pixel coordinate
+        
+          float dx = x - blob.x;
+          float dy = y - blob.y;
           float radius = blob.z;
+
+          //calculate angle
+          float angle = atan(dy, dx);
+          
+          float noise = rand(vec2(angle, uTime));
+       
+
+          //distort radius (z coordinate is radius)
+          radius = blob.z * (1.0 + 0.2 * noise);
+
+
+          
 
           sum += (radius * radius) / (dx * dx + dy * dy);
       }
@@ -104,19 +127,13 @@ function initShader() {
 
   gL.useProgram(gL_Shader);
 
-  //create vertexs this is for the rectangulars viewport
-  var vertices = new Float32Array([
-    -1.0, 1.0,
-    -1.0, -1.0,
-    1.0, 1.0,
-    1.0, -1.0
-  ]);
+  //create vertexs this is for the rectangular viewport
+  var vertices = new Float32Array([-1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, -1.0]);
 
   //do vertex buffer stuff here
   var vertexDataBuffer = gL.createBuffer();
   gL.bindBuffer(gL.ARRAY_BUFFER, vertexDataBuffer);
   gL.bufferData(gL.ARRAY_BUFFER, vertices, gL.STATIC_DRAW);
-
 
   //need to find the position as defined in getVertexShader
   shaderVertexPositionAttribute = gL.getAttribLocation(gL_Shader, "position");
@@ -136,4 +153,7 @@ function initShader() {
   uBlobsLoc = gL.getUniformLocation(gL_Shader, "blobs");
   uColorLoc = gL.getUniformLocation(gL_Shader, "blobColor");
   uBgColorLoc = gL.getUniformLocation(gL_Shader, "backgroundColor");
+
+  //time uniform for shader
+  uTimeLoc = gL.getUniformLocation(gL_Shader, "uTime");
 }

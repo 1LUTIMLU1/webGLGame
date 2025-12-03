@@ -29,8 +29,6 @@ function initializeGL() {
     if(gL !== null) {
         //black screen
         gL.clearColor(0.0, 0.0, 0.0, 1.0);
-        //enable depth test
-        gL.enable(gL.DEPTH_TEST);
     }
     else {
         document.getElementById("webGL-error").innerHTML = 
@@ -49,6 +47,36 @@ function clearCanvas() {
 }
 
 
+
+//this might need to be moved to a different javascript file
+//later on
+function render(time) {
+
+    if (!gL)
+        return;
+    //clear screen
+    gL.clear(gL.COLOR_BUFFER_BIT);
+
+      //send the one blob object to gpu
+    var data = [blobs[0].x, blobs[0].y, blobs[0].z];
+
+    gL.uniform3fv(uBlobsLoc, new Float32Array(data));
+    gL.uniform3fv(uColorLoc, blobColor);
+    gL.uniform3fv(uBgColorLoc, backgroundColor);
+
+    //send time
+    gL.uniform1f(uTimeLoc, time * 0.001);
+
+    //draw the viewport
+    gL.drawArrays(gL.TRIANGLE_STRIP, 0, 4);
+
+    //get next frame
+    requestAnimationFrame(render);
+
+
+}
+
+
 function gL_draw() {
     initializeGL();
 
@@ -58,15 +86,9 @@ function gL_draw() {
     //clear screen to black
     clearCanvas();
 
-    //send the one blob object to gpu
-    var data = [blobs[0].x, blobs[0].y, blobs[0].z];
+    //start the game loop
 
-    gL.uniform3fv(uBlobsLoc, new Float32Array(data));
-    gL.uniform3fv(uColorLoc, blobColor);
-    gL.uniform3fv(uBgColorLoc, backgroundColor);
-
-    //draw the viewport
-    gL.drawArrays(gL.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
 
 
 }
