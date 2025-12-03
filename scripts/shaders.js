@@ -42,10 +42,17 @@ function getFragmentShader() {
     uniform vec3 backgroundColor;
 
     //generate noise
-    //solution copied from https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
-    float rand(vec2 co) {
-        return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
-    }
+   float jelloNoise(float angle, float time) {
+    const int LOBES = 7;
+    // convert angle to continuous lobe index
+    float lobeIndex = angle * float(LOBES) / (2.0 * 3.14159265);
+    // smooth alternating grow/shrink pattern
+    float alternating = cos(3.14159265 * lobeIndex);
+    // smooth wobble per lobe
+    float wobble = sin(time * 1.0 + lobeIndex * 2.4);
+    // combined noise
+    return alternating * wobble;
+}
 
     void main() {
       float x = gl_FragCoord.x;
@@ -63,8 +70,8 @@ function getFragmentShader() {
 
           //calculate angle
           float angle = atan(dy, dx);
-          
-          float noise = rand(vec2(angle, uTime));
+
+          float noise = jelloNoise(angle, uTime);
        
 
           //distort radius (z coordinate is radius)
