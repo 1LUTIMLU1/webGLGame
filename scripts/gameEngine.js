@@ -5,6 +5,21 @@
 /** @type {WebGLRenderingContext} */
 var gL = null;
 
+//define a single blob at the middle of the screen for now
+
+var blobs = [
+    {x: 480.0, y: 360.0, z:60.0 }
+];
+
+var blobStickiness = 0.5;
+var blobColor = [0.0, 1.0, 0.0]; //green
+var backgroundColor = [1.0, 1.0, 1.0]; //white
+
+// Handles to send data to GPU
+var uBlobsLoc = null;
+var uColorLoc = null;
+var uBgColorLoc = null;
+
 function initializeGL() {
     var canvas = window.document.getElementById("GLCanvas");
 
@@ -14,6 +29,8 @@ function initializeGL() {
     if(gL !== null) {
         //black screen
         gL.clearColor(0.0, 0.0, 0.0, 1.0);
+        //enable depth test
+        gL.enable(gL.DEPTH_TEST);
     }
     else {
         document.getElementById("webGL-error").innerHTML = 
@@ -35,8 +52,23 @@ function clearCanvas() {
 function gL_draw() {
     initializeGL();
 
+    //compile and link shader in shader.js
+    initShader();
+
     //clear screen to black
     clearCanvas();
+
+    //send the one blob object to gpu
+    var data = [blobs[0].x, blobs[0].y, blobs[0].z];
+
+    gL.uniform3fv(uBlobsLoc, new Float32Array(data));
+    gL.uniform3fv(uColorLoc, blobColor);
+    gL.uniform3fv(uBgColorLoc, backgroundColor);
+
+    //draw the viewport
+    gL.drawArrays(gL.TRIANGLE_STRIP, 0, 4);
+
+
 }
 
 console.log("GL:", gL);
